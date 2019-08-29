@@ -1,0 +1,763 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "factoryName": {
+            "type": "string",
+            "metadata": "Data Factory Name",
+            "defaultValue": "IncorpTaxActDataLoad"
+        },
+        "ITAAzureKeyVault_properties_typeProperties_baseUrl": {
+            "type": "string",
+            "defaultValue": "https://itablobstorage.vault.azure.net/"
+        },
+        "ITAAzureBlobStorage_properties_typeProperties_connectionString_secretName": {
+            "type": "string",
+            "defaultValue": "azureblobkeyprod"
+        },
+        "ITASQLlinkedService_properties_typeProperties_connectionString_secretName": {
+            "type": "string",
+            "defaultValue": "itaazuresqlprod"
+        }
+    },
+    "variables": {
+        "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+    },
+    "resources": [
+        {
+            "name": "[concat(parameters('factoryName'), '/ITAArchiveFolderPath')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "ITAAzureBlobStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "folderPath": {
+                            "value": "Archive/@{formatDateTime(adddays(utcnow(),-1),'yyyy')}-@{formatDateTime(adddays(utcnow(),-1),'MM')}-@{formatDateTime(adddays(utcnow(),-1),'dd')}",
+                            "type": "Expression"
+                        },
+                        "container": "itaadmin"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "quoteChar": "\""
+                },
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/ITAAzureBlobStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ITABlobContainerPath')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "ITAAzureBlobStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "container": "itaadmin"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "quoteChar": "\""
+                },
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/ITAAzureBlobStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ITAInputFolderPath')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "ITAAzureBlobStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "folderPath": "Input",
+                        "container": "itaadmin"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": false,
+                    "quoteChar": "\""
+                },
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/ITAAzureBlobStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ITAAzureKeyVault')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureKeyVault",
+                "typeProperties": {
+                    "baseUrl": "[parameters('ITAAzureKeyVault_properties_typeProperties_baseUrl')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ITAAzureBlobStorage')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureBlobStorage",
+                "typeProperties": {
+                    "connectionString": {
+                        "type": "AzureKeyVaultSecret",
+                        "store": {
+                            "referenceName": "ITAAzureKeyVault",
+                            "type": "LinkedServiceReference"
+                        },
+                        "secretName": "[parameters('ITAAzureBlobStorage_properties_typeProperties_connectionString_secretName')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/ITAAzureKeyVault')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ITASQLlinkedService')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureSqlDatabase",
+                "typeProperties": {
+                    "connectionString": {
+                        "type": "AzureKeyVaultSecret",
+                        "store": {
+                            "referenceName": "ITAAzureKeyVault",
+                            "type": "LinkedServiceReference"
+                        },
+                        "secretName": "[parameters('ITASQLlinkedService_properties_typeProperties_connectionString_secretName')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/ITAAzureKeyVault')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ITAProcessFiles')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "3_GetFilesList",
+                        "type": "GetMetadata",
+                        "dependsOn": [
+                            {
+                                "activity": "2_DeleteFilesfromBlobContainer",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "dataset": {
+                                "referenceName": "ITAInputFolderPath",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            },
+                            "fieldList": [
+                                "childItems"
+                            ],
+                            "storeSettings": {
+                                "type": "AzureBlobStorageReadSettings",
+                                "recursive": true
+                            },
+                            "formatSettings": {
+                                "type": "DelimitedTextReadSettings"
+                            }
+                        }
+                    },
+                    {
+                        "name": "1_MoveFilestoInputFolder",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "DelimitedTextSource",
+                                "storeSettings": {
+                                    "type": "AzureBlobStorageReadSettings",
+                                    "recursive": false,
+                                    "wildcardFileName": "*.CSV",
+                                    "enablePartitionDiscovery": false
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextReadSettings"
+                                }
+                            },
+                            "sink": {
+                                "type": "DelimitedTextSink",
+                                "storeSettings": {
+                                    "type": "AzureBlobStorageWriteSettings"
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextWriteSettings",
+                                    "quoteAllText": true,
+                                    "fileExtension": "*.CSV"
+                                }
+                            },
+                            "enableStaging": false
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "ITABlobContainerPath",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "ITAInputFolderPath",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ]
+                    },
+                    {
+                        "name": "2_DeleteFilesfromBlobContainer",
+                        "type": "Delete",
+                        "dependsOn": [
+                            {
+                                "activity": "1_MoveFilestoInputFolder",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "dataset": {
+                                "referenceName": "ITABlobContainerPath",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            },
+                            "enableLogging": false,
+                            "storeSettings": {
+                                "type": "AzureBlobStorageReadSettings",
+                                "recursive": false,
+                                "wildcardFileName": "*.CSV"
+                            }
+                        }
+                    },
+                    {
+                        "name": "4_ForEachFile",
+                        "type": "ForEach",
+                        "dependsOn": [
+                            {
+                                "activity": "3_GetFilesList",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "items": {
+                                "value": "@activity('3_GetFilesList').output.childitems",
+                                "type": "Expression"
+                            },
+                            "isSequential": true,
+                            "activities": [
+                                {
+                                    "name": "1_SetFileName",
+                                    "type": "SetVariable",
+                                    "dependsOn": [],
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "variableName": "fileName",
+                                        "value": {
+                                            "value": "@item().name",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "2_InitiateDataLoad",
+                                    "type": "SqlServerStoredProcedure",
+                                    "dependsOn": [
+                                        {
+                                            "activity": "1_SetFileName",
+                                            "dependencyConditions": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    ],
+                                    "policy": {
+                                        "timeout": "7.00:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "storedProcedureName": "[[IncorpTax].[ti_IncorpTax_InitiateDataLoad_SP]",
+                                        "storedProcedureParameters": {
+                                            "FileName": {
+                                                "value": {
+                                                    "value": "@variables('fileName')",
+                                                    "type": "Expression"
+                                                },
+                                                "type": "String"
+                                            }
+                                        }
+                                    },
+                                    "linkedServiceName": {
+                                        "referenceName": "ITASQLlinkedService",
+                                        "type": "LinkedServiceReference"
+                                    }
+                                },
+                                {
+                                    "name": "Archive Processed File",
+                                    "type": "Copy",
+                                    "dependsOn": [
+                                        {
+                                            "activity": "2_InitiateDataLoad",
+                                            "dependencyConditions": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    ],
+                                    "policy": {
+                                        "timeout": "7.00:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "source": {
+                                            "type": "DelimitedTextSource",
+                                            "storeSettings": {
+                                                "type": "AzureBlobStorageReadSettings",
+                                                "recursive": false,
+                                                "enablePartitionDiscovery": false
+                                            },
+                                            "formatSettings": {
+                                                "type": "DelimitedTextReadSettings"
+                                            }
+                                        },
+                                        "sink": {
+                                            "type": "DelimitedTextSink",
+                                            "storeSettings": {
+                                                "type": "AzureBlobStorageWriteSettings"
+                                            },
+                                            "formatSettings": {
+                                                "type": "DelimitedTextWriteSettings",
+                                                "quoteAllText": true,
+                                                "fileExtension": ""
+                                            }
+                                        },
+                                        "enableStaging": false
+                                    },
+                                    "inputs": [
+                                        {
+                                            "referenceName": "ITAProcessedFilePath",
+                                            "type": "DatasetReference",
+                                            "parameters": {}
+                                        }
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "referenceName": "ITAArchiveFolderPath",
+                                            "type": "DatasetReference",
+                                            "parameters": {}
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "Delete Processed File",
+                                    "type": "Delete",
+                                    "dependsOn": [
+                                        {
+                                            "activity": "Archive Processed File",
+                                            "dependencyConditions": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    ],
+                                    "policy": {
+                                        "timeout": "7.00:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "dataset": {
+                                            "referenceName": "ITAProcessedFilePath",
+                                            "type": "DatasetReference",
+                                            "parameters": {}
+                                        },
+                                        "enableLogging": false,
+                                        "storeSettings": {
+                                            "type": "AzureBlobStorageReadSettings",
+                                            "recursive": false
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "variables": {
+                    "fileName": {
+                        "type": "String"
+                    }
+                },
+                "annotations": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/ITAInputFolderPath')]",
+                "[concat(variables('factoryId'), '/datasets/ITABlobContainerPath')]",
+                "[concat(variables('factoryId'), '/linkedServices/ITASQLlinkedService')]",
+                "[concat(variables('factoryId'), '/datasets/ITAProcessedFilePath')]",
+                "[concat(variables('factoryId'), '/datasets/ITAArchiveFolderPath')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ITAPowerBIDataRefresh')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "GetTenantIdfromAKV",
+                        "type": "WebActivity",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": true,
+                            "secureInput": true
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "url": {
+                                "value": "@concat(pipeline().parameters.KeyVaultDNSName,'secrets/',pipeline().parameters.SecretName_Tenantid,'/',pipeline().parameters.SecretVersion_Tenantid,'?api-version=7.0')",
+                                "type": "Expression"
+                            },
+                            "method": "GET",
+                            "headers": {},
+                            "authentication": {
+                                "type": "MSI",
+                                "resource": "https://vault.azure.net"
+                            }
+                        }
+                    },
+                    {
+                        "name": "GetClientIdfromAKV",
+                        "type": "WebActivity",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": true,
+                            "secureInput": true
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "url": {
+                                "value": "@concat(pipeline().parameters.KeyVaultDNSName,'secrets/',pipeline().parameters.SecretName_Clientid,'/',pipeline().parameters.SecretVersion_Clientid,'?api-version=7.0')",
+                                "type": "Expression"
+                            },
+                            "method": "GET",
+                            "headers": {},
+                            "authentication": {
+                                "type": "MSI",
+                                "resource": "https://vault.azure.net"
+                            }
+                        }
+                    },
+                    {
+                        "name": "GetSecretfromAKV",
+                        "type": "WebActivity",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": true,
+                            "secureInput": true
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "url": {
+                                "value": "@concat(pipeline().parameters.KeyVaultDNSName,'secrets/',pipeline().parameters.SecretName_Password,'/',pipeline().parameters.SecretVersion_Password,'?api-version=7.0')",
+                                "type": "Expression"
+                            },
+                            "method": "GET",
+                            "headers": {},
+                            "authentication": {
+                                "type": "MSI",
+                                "resource": "https://vault.azure.net"
+                            }
+                        }
+                    },
+                    {
+                        "name": "GetAADToken",
+                        "type": "WebActivity",
+                        "dependsOn": [
+                            {
+                                "activity": "GetTenantIdfromAKV",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            },
+                            {
+                                "activity": "GetClientIdfromAKV",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            },
+                            {
+                                "activity": "GetSecretfromAKV",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": true,
+                            "secureInput": true
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "url": {
+                                "value": "@concat('https://login.microsoftonline.com/',activity('GetTenantIdfromAKV').output.value,'/oauth2/token')",
+                                "type": "Expression"
+                            },
+                            "method": "POST",
+                            "headers": {
+                                "Content-Type": "application/x-www-form-urlencoded"
+                            },
+                            "body": {
+                                "value": "@concat('grant_type=client_credentials&resource=https://analysis.windows.net/powerbi/api&client_id=',activity('GetClientIdfromAKV').output.value,'&client_secret=',encodeUriComponent(activity('GetSecretfromAKV').output.value))",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    {
+                        "name": "CallPowerBIRestAPI",
+                        "type": "WebActivity",
+                        "dependsOn": [
+                            {
+                                "activity": "GetAADToken",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": true,
+                            "secureInput": true
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "url": {
+                                "value": "@concat('https://api.powerbi.com/v1.0/myorg/groups/',pipeline().parameters.PBIAppWorkspaceId,'/datasets/',pipeline().parameters.PBIDatasetId,'/refreshes')",
+                                "type": "Expression"
+                            },
+                            "method": "POST",
+                            "headers": {
+                                "Authorization": {
+                                    "value": "@concat(string(activity('GetAADToken').output.token_type),' ',string(activity('GetAADToken').output.access_token))",
+                                    "type": "Expression"
+                                }
+                            },
+                            "body": {
+                                "hellow": "worlddd"
+                            }
+                        }
+                    }
+                ],
+                "parameters": {
+                    "KeyVaultDNSName": {
+                        "type": "string",
+                        "defaultValue": "https://itablobstorage.vault.azure.net/"
+                    },
+                    "SecretName_Tenantid": {
+                        "type": "string",
+                        "defaultValue": "itaadapptenantid"
+                    },
+                    "SecretVersion_Tenantid": {
+                        "type": "string",
+                        "defaultValue": "a17fb7b7797440949dffbd497aebfc82"
+                    },
+                    "SecretName_Clientid": {
+                        "type": "string",
+                        "defaultValue": "itaadappclientid"
+                    },
+                    "SecretVersion_Clientid": {
+                        "type": "string",
+                        "defaultValue": "c31911dc65dd4205a85a1fa4c8ce1338"
+                    },
+                    "SecretName_Password": {
+                        "type": "string",
+                        "defaultValue": "itaadapppassword"
+                    },
+                    "SecretVersion_Password": {
+                        "type": "string",
+                        "defaultValue": "eb608bb9b98f428eb81a1e64b4433f03"
+                    },
+                    "PBIAppWorkspaceId": {
+                        "type": "string",
+                        "defaultValue": "79b8d0c5-b96b-43d6-967a-ee95586942e1"
+                    },
+                    "PBIDatasetId": {
+                        "type": "string",
+                        "defaultValue": "cf1a92af-cbf9-43cf-bcfd-850a964d201f"
+                    }
+                },
+                "annotations": []
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ITAInitiateDataLoad')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "2_Refresh PowerBI DataSet",
+                        "type": "ExecutePipeline",
+                        "dependsOn": [
+                            {
+                                "activity": "1_ProcessFiles",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "pipeline": {
+                                "referenceName": "ITAPowerBIDataRefresh",
+                                "type": "PipelineReference"
+                            },
+                            "waitOnCompletion": true,
+                            "parameters": {}
+                        }
+                    },
+                    {
+                        "name": "1_ProcessFiles",
+                        "type": "ExecutePipeline",
+                        "dependsOn": [],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "pipeline": {
+                                "referenceName": "ITAProcessFiles",
+                                "type": "PipelineReference"
+                            },
+                            "waitOnCompletion": true,
+                            "parameters": {}
+                        }
+                    }
+                ],
+                "annotations": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/pipelines/ITAPowerBIDataRefresh')]",
+                "[concat(variables('factoryId'), '/pipelines/ITAProcessFiles')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ITAProcessedFilePath')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "ITAAzureBlobStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "fileName": {
+                            "value": "@variables('fileName')",
+                            "type": "Expression"
+                        },
+                        "folderPath": "Input",
+                        "container": "incorptax"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": false,
+                    "quoteChar": "\""
+                },
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/ITAAzureBlobStorage')]"
+            ]
+        }
+    ]
+}

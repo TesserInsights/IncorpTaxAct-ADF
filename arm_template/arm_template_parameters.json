@@ -1,0 +1,18 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "factoryName": {
+            "value": "IncorpTaxActDataLoad"
+        },
+        "ITAAzureKeyVault_properties_typeProperties_baseUrl": {
+            "value": "https://itablobstorage.vault.azure.net/"
+        },
+        "ITAAzureBlobStorage_properties_typeProperties_connectionString_secretName": {
+            "value": "azureblobkeyprod"
+        },
+        "ITASQLlinkedService_properties_typeProperties_connectionString_secretName": {
+            "value": "itaazuresqlprod"
+        }
+    }
+}
