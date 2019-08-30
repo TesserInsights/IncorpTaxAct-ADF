@@ -17,97 +17,13 @@
         },
         "ITASQLlinkedService_properties_typeProperties_connectionString_secretName": {
             "type": "string",
-            "defaultValue": "itaazuresqlprod"
+            "defaultValue": "itaazuresql"
         }
     },
     "variables": {
         "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
     },
     "resources": [
-        {
-            "name": "[concat(parameters('factoryName'), '/ITAArchiveFolderPath')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "ITAAzureBlobStorage",
-                    "type": "LinkedServiceReference"
-                },
-                "annotations": [],
-                "type": "DelimitedText",
-                "typeProperties": {
-                    "location": {
-                        "type": "AzureBlobStorageLocation",
-                        "folderPath": {
-                            "value": "Archive/@{formatDateTime(adddays(utcnow(),-1),'yyyy')}-@{formatDateTime(adddays(utcnow(),-1),'MM')}-@{formatDateTime(adddays(utcnow(),-1),'dd')}",
-                            "type": "Expression"
-                        },
-                        "container": "itaadmin"
-                    },
-                    "columnDelimiter": ",",
-                    "escapeChar": "\\",
-                    "quoteChar": "\""
-                },
-                "schema": []
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/ITAAzureBlobStorage')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/ITABlobContainerPath')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "ITAAzureBlobStorage",
-                    "type": "LinkedServiceReference"
-                },
-                "annotations": [],
-                "type": "DelimitedText",
-                "typeProperties": {
-                    "location": {
-                        "type": "AzureBlobStorageLocation",
-                        "container": "itaadmin"
-                    },
-                    "columnDelimiter": ",",
-                    "escapeChar": "\\",
-                    "quoteChar": "\""
-                },
-                "schema": []
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/ITAAzureBlobStorage')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/ITAInputFolderPath')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "ITAAzureBlobStorage",
-                    "type": "LinkedServiceReference"
-                },
-                "annotations": [],
-                "type": "DelimitedText",
-                "typeProperties": {
-                    "location": {
-                        "type": "AzureBlobStorageLocation",
-                        "folderPath": "Input",
-                        "container": "itaadmin"
-                    },
-                    "columnDelimiter": ",",
-                    "escapeChar": "\\",
-                    "firstRowAsHeader": false,
-                    "quoteChar": "\""
-                },
-                "schema": []
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/ITAAzureBlobStorage')]"
-            ]
-        },
         {
             "name": "[concat(parameters('factoryName'), '/ITAAzureKeyVault')]",
             "type": "Microsoft.DataFactory/factories/linkedServices",
@@ -163,6 +79,122 @@
             },
             "dependsOn": [
                 "[concat(variables('factoryId'), '/linkedServices/ITAAzureKeyVault')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ITAArchiveFolderPath')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "ITAAzureBlobStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "folderPath": {
+                            "value": "Archive/@{formatDateTime(adddays(utcnow(),-1),'yyyy')}-@{formatDateTime(adddays(utcnow(),-1),'MM')}-@{formatDateTime(adddays(utcnow(),-1),'dd')}",
+                            "type": "Expression"
+                        },
+                        "container": "incorptax"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "quoteChar": "\""
+                },
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/ITAAzureBlobStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ITABlobContainerPath')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "ITAAzureBlobStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "container": "incorptax"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "quoteChar": "\""
+                },
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/ITAAzureBlobStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ITAInputFolderPath')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "ITAAzureBlobStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "folderPath": "Input",
+                        "container": "incorptax"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": false,
+                    "quoteChar": "\""
+                },
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/ITAAzureBlobStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ITAProcessedFilePath')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "ITAAzureBlobStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "fileName": {
+                            "value": "@variables('fileName')",
+                            "type": "Expression"
+                        },
+                        "folderPath": "Input",
+                        "container": "incorptax"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": false,
+                    "quoteChar": "\""
+                },
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/ITAAzureBlobStorage')]"
             ]
         },
         {
@@ -452,6 +484,39 @@
                                             "recursive": false
                                         }
                                     }
+                                },
+                                {
+                                    "name": "Mark for Sending Email Notification",
+                                    "type": "SqlServerStoredProcedure",
+                                    "dependsOn": [
+                                        {
+                                            "activity": "Delete Processed File",
+                                            "dependencyConditions": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    ],
+                                    "policy": {
+                                        "timeout": "7.00:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "storedProcedureName": "[[dbo].[ti_Incorptax_InsertNotificationToCustomer_sp]",
+                                        "storedProcedureParameters": {
+                                            "FileName": {
+                                                "value": "@variables('fileName')",
+                                                "type": "String"
+                                            }
+                                        }
+                                    },
+                                    "linkedServiceName": {
+                                        "referenceName": "ITASQLlinkedService",
+                                        "type": "LinkedServiceReference"
+                                    }
                                 }
                             ]
                         }
@@ -479,7 +544,7 @@
             "properties": {
                 "activities": [
                     {
-                        "name": "GetTenantIdfromAKV",
+                        "name": "1_GetTenantIdfromAKV",
                         "type": "WebActivity",
                         "dependsOn": [],
                         "policy": {
@@ -504,7 +569,7 @@
                         }
                     },
                     {
-                        "name": "GetClientIdfromAKV",
+                        "name": "2_GetClientIdfromAKV",
                         "type": "WebActivity",
                         "dependsOn": [],
                         "policy": {
@@ -529,7 +594,7 @@
                         }
                     },
                     {
-                        "name": "GetSecretfromAKV",
+                        "name": "3_GetSecretfromAKV",
                         "type": "WebActivity",
                         "dependsOn": [],
                         "policy": {
@@ -554,23 +619,23 @@
                         }
                     },
                     {
-                        "name": "GetAADToken",
+                        "name": "4_GetAADToken",
                         "type": "WebActivity",
                         "dependsOn": [
                             {
-                                "activity": "GetTenantIdfromAKV",
+                                "activity": "1_GetTenantIdfromAKV",
                                 "dependencyConditions": [
                                     "Succeeded"
                                 ]
                             },
                             {
-                                "activity": "GetClientIdfromAKV",
+                                "activity": "2_GetClientIdfromAKV",
                                 "dependencyConditions": [
                                     "Succeeded"
                                 ]
                             },
                             {
-                                "activity": "GetSecretfromAKV",
+                                "activity": "3_GetSecretfromAKV",
                                 "dependencyConditions": [
                                     "Succeeded"
                                 ]
@@ -586,7 +651,7 @@
                         "userProperties": [],
                         "typeProperties": {
                             "url": {
-                                "value": "@concat('https://login.microsoftonline.com/',activity('GetTenantIdfromAKV').output.value,'/oauth2/token')",
+                                "value": "@concat('https://login.microsoftonline.com/',activity('1_GetTenantIdfromAKV').output.value,'/oauth2/token')",
                                 "type": "Expression"
                             },
                             "method": "POST",
@@ -594,17 +659,17 @@
                                 "Content-Type": "application/x-www-form-urlencoded"
                             },
                             "body": {
-                                "value": "@concat('grant_type=client_credentials&resource=https://analysis.windows.net/powerbi/api&client_id=',activity('GetClientIdfromAKV').output.value,'&client_secret=',encodeUriComponent(activity('GetSecretfromAKV').output.value))",
+                                "value": "@concat('grant_type=client_credentials&resource=https://analysis.windows.net/powerbi/api&client_id=',activity('2_GetClientIdfromAKV').output.value,'&client_secret=',encodeUriComponent(activity('3_GetSecretfromAKV').output.value))",
                                 "type": "Expression"
                             }
                         }
                     },
                     {
-                        "name": "CallPowerBIRestAPI",
+                        "name": "5_CallPowerBIRestAPI",
                         "type": "WebActivity",
                         "dependsOn": [
                             {
-                                "activity": "GetAADToken",
+                                "activity": "4_GetAADToken",
                                 "dependencyConditions": [
                                     "Succeeded"
                                 ]
@@ -626,7 +691,7 @@
                             "method": "POST",
                             "headers": {
                                 "Authorization": {
-                                    "value": "@concat(string(activity('GetAADToken').output.token_type),' ',string(activity('GetAADToken').output.access_token))",
+                                    "value": "@concat(string(activity('4_GetAADToken').output.token_type),' ',string(activity('4_GetAADToken').output.access_token))",
                                     "type": "Expression"
                                 }
                             },
@@ -718,45 +783,198 @@
                             "waitOnCompletion": true,
                             "parameters": {}
                         }
+                    },
+                    {
+                        "name": "3_Notify Customer",
+                        "type": "ExecutePipeline",
+                        "dependsOn": [
+                            {
+                                "activity": "2_Refresh PowerBI DataSet",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "pipeline": {
+                                "referenceName": "ITANotifyCustomer",
+                                "type": "PipelineReference"
+                            },
+                            "waitOnCompletion": true,
+                            "parameters": {}
+                        }
                     }
                 ],
                 "annotations": []
             },
             "dependsOn": [
                 "[concat(variables('factoryId'), '/pipelines/ITAPowerBIDataRefresh')]",
-                "[concat(variables('factoryId'), '/pipelines/ITAProcessFiles')]"
+                "[concat(variables('factoryId'), '/pipelines/ITAProcessFiles')]",
+                "[concat(variables('factoryId'), '/pipelines/ITANotifyCustomer')]"
             ]
         },
         {
-            "name": "[concat(parameters('factoryName'), '/ITAProcessedFilePath')]",
+            "name": "[concat(parameters('factoryName'), '/ITANotifyCustomer')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "1_Get Customer Notification List",
+                        "type": "Lookup",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "AzureSqlSource",
+                                "sqlReaderStoredProcedureName": "[[dbo].[ti_Incorptax_GetCustomerNotificationList_sp]"
+                            },
+                            "dataset": {
+                                "referenceName": "ITACustomerNotificationList",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            },
+                            "firstRowOnly": false
+                        }
+                    },
+                    {
+                        "name": "2_For Each Customer Notification",
+                        "type": "ForEach",
+                        "dependsOn": [
+                            {
+                                "activity": "1_Get Customer Notification List",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "items": {
+                                "value": "@activity('1_Get Customer Notification List').output.value",
+                                "type": "Expression"
+                            },
+                            "activities": [
+                                {
+                                    "name": "2a_Notify Customer",
+                                    "type": "WebActivity",
+                                    "dependsOn": [],
+                                    "policy": {
+                                        "timeout": "7.00:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "url": "https://prod-16.eastus.logic.azure.com:443/workflows/a1f8683d5d0045e8857e7628143f61f4/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=TXCU3MrGKGn003esIP8csHf_coVx5XVcyt71gHkrQbw",
+                                        "method": "POST",
+                                        "headers": {
+                                            "Content-Type": {
+                                                "value": "application/json",
+                                                "type": "Expression"
+                                            }
+                                        },
+                                        "body": {
+                                            "value": "@concat('{  \n   \"CustomerName\":\"',item().ITACustomerName,'\",\n   \"FileName\": \"',item().FileName,'\",\n   \"Statement\":\"',item().Statement,'\",\n   \"EmailTo\":\"',item().EmailId,'\"')",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "2b_Update Notification Status",
+                                    "type": "SqlServerStoredProcedure",
+                                    "dependsOn": [
+                                        {
+                                            "activity": "2a_Notify Customer",
+                                            "dependencyConditions": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    ],
+                                    "policy": {
+                                        "timeout": "7.00:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "storedProcedureName": "[[dbo].[ti_Incorptax_UpdateEmailNotificationStatus_sp]",
+                                        "storedProcedureParameters": {
+                                            "FileName": {
+                                                "value": "@item().FileName",
+                                                "type": "String"
+                                            }
+                                        }
+                                    },
+                                    "linkedServiceName": {
+                                        "referenceName": "ITASQLlinkedService",
+                                        "type": "LinkedServiceReference"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "variables": {
+                    "CustomerName": {
+                        "type": "String"
+                    }
+                },
+                "annotations": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/ITACustomerNotificationList')]",
+                "[concat(variables('factoryId'), '/linkedServices/ITASQLlinkedService')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ITACustomerNotificationList')]",
             "type": "Microsoft.DataFactory/factories/datasets",
             "apiVersion": "2018-06-01",
             "properties": {
                 "linkedServiceName": {
-                    "referenceName": "ITAAzureBlobStorage",
+                    "referenceName": "ITASQLlinkedService",
                     "type": "LinkedServiceReference"
                 },
                 "annotations": [],
-                "type": "DelimitedText",
-                "typeProperties": {
-                    "location": {
-                        "type": "AzureBlobStorageLocation",
-                        "fileName": {
-                            "value": "@variables('fileName')",
-                            "type": "Expression"
-                        },
-                        "folderPath": "Input",
-                        "container": "incorptax"
+                "type": "AzureSqlTable",
+                "schema": [
+                    {
+                        "name": "ITACustomerName",
+                        "type": "varchar"
                     },
-                    "columnDelimiter": ",",
-                    "escapeChar": "\\",
-                    "firstRowAsHeader": false,
-                    "quoteChar": "\""
-                },
-                "schema": []
+                    {
+                        "name": "FileName",
+                        "type": "varchar"
+                    },
+                    {
+                        "name": "Statement",
+                        "type": "varchar"
+                    },
+                    {
+                        "name": "EmailID",
+                        "type": "varchar"
+                    }
+                ],
+                "typeProperties": {
+                    "schema": "IncorpTax",
+                    "table": "ti_ITACustomerNotificationList"
+                }
             },
             "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/ITAAzureBlobStorage')]"
+                "[concat(variables('factoryId'), '/linkedServices/ITASQLlinkedService')]"
             ]
         }
     ]
