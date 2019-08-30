@@ -17,7 +17,7 @@
         },
         "ITASQLlinkedService_properties_typeProperties_connectionString_secretName": {
             "type": "string",
-            "defaultValue": "itaazuresql"
+            "defaultValue": "itaazuresqlprod"
         }
     },
     "variables": {
@@ -99,7 +99,7 @@
                             "value": "Archive/@{formatDateTime(adddays(utcnow(),-1),'yyyy')}-@{formatDateTime(adddays(utcnow(),-1),'MM')}-@{formatDateTime(adddays(utcnow(),-1),'dd')}",
                             "type": "Expression"
                         },
-                        "container": "incorptax"
+                        "container": "itaadmin"
                     },
                     "columnDelimiter": ",",
                     "escapeChar": "\\",
@@ -125,7 +125,7 @@
                 "typeProperties": {
                     "location": {
                         "type": "AzureBlobStorageLocation",
-                        "container": "incorptax"
+                        "container": "itaadmin"
                     },
                     "columnDelimiter": ",",
                     "escapeChar": "\\",
@@ -152,7 +152,7 @@
                     "location": {
                         "type": "AzureBlobStorageLocation",
                         "folderPath": "Input",
-                        "container": "incorptax"
+                        "container": "itaadmin"
                     },
                     "columnDelimiter": ",",
                     "escapeChar": "\\",
@@ -184,7 +184,7 @@
                             "type": "Expression"
                         },
                         "folderPath": "Input",
-                        "container": "incorptax"
+                        "container": "itaadmin"
                     },
                     "columnDelimiter": ",",
                     "escapeChar": "\\",
